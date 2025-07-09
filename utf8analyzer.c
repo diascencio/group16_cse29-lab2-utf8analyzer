@@ -5,6 +5,108 @@
 #include <stdint.h>
 
 
+//aid function for 4,5,6
+int get_utf8_char_length(char* str, int pos) {
+    unsigned char byte = (unsigned char)str[pos];
+
+    if (byte <= 0x7F) {
+        return 1;
+    } else if ((byte & 0xE0) == 0xC0) {
+        return 2;
+    } else if ((byte & 0xF0) == 0xE0) {
+        return 3;
+    } else if ((byte & 0xF8) == 0xF0) {
+        return 4;
+    }
+
+    return -1;
+}
+
+int32_t decode_utf8_char(const char* str, int pos, int char_len) {
+    unsigned char* bytes = (unsigned char*)str;
+    int32_t codepoint = 0;
+
+    if (char_len == 1){
+        codepoint = bytes[pos];
+    }
+    else if (char_len == 2){
+        codepoint = ((bytes[pos] & 0x1F) << 6) | (bytes[pos + 1] & 0x3F);
+    }
+    else if (char_len == 3){
+        codepoint = ((bytes[pos] & 0x0F) << 12) |
+                       ((bytes[pos + 1] & 0x3F) << 6) |
+                       (bytes[pos + 2] & 0x3F);
+    }
+    else if (char_len == 4){
+        codepoint = ((bytes[pos] & 0x07) << 18) |
+                       ((bytes[pos + 1] & 0x3F) << 12) |
+                       ((bytes[pos + 2] & 0x3F) << 6) |
+                       (bytes[pos + 3] & 0x3F);
+    }
+    return codepoint;
+}
+
+// Function 4
+void codepoint_number(){
+    int codepoint_count = 0;
+    int pos = 0;
+    int len = strlen(test_string);
+    
+    while (pos < len) {
+        int char_len = get_utf8_char_length(test_string, pos);
+        codepoint_count++;
+        pos += char_len;
+    }
+    printf("Number of code points: %d\n", codepoint_count);
+}
+
+
+//Function 5
+
+void bytes_per_codepoint(){
+unsigned int codepoints[1000]; // Assuming max 1000 codepoints
+    int count = 0;
+    int pos = 0;
+    
+    while (pos < len) {
+        int char_len = get_utf8_char_length(test_string, pos);
+        unsigned int codepoint = decode_utf8_char(test_string, pos, char_len);
+        codepoints[count] = codepoint;
+        count++;
+        pos += char_len;
+    }
+    
+    printf("Code points as decimal numbers: ");
+    for (int j = 0; j < count; j++) {
+        printf("%u ", codepoints[j]);
+    }
+    printf("\n");
+}
+
+
+//Function 6
+
+void length_in_bytes(){
+    int byte_lengths[1000];
+    int count = 0;
+    int pos = 0;
+    
+    while (pos < len) {
+        int char_len = get_utf8_char_length(test_string, pos);
+        byte_lengths[count] = char_len;
+        count++;
+        pos += char_len;
+    }
+    
+    printf("Bytes per code point: ");
+    for (int j = 0; j < count; j++) {
+        printf("%d ", byte_lengths[j]);
+    }
+    printf("\n");
+
+    return 0;
+}
+
 
 
 // Function 7
@@ -134,10 +236,9 @@ void animal_emoji(char str[]){
         byte_index += codepoint_size(str[byte_index]);
         codepoint_index++;
     }
-
-    printf("\n");
-
+    printf("The number of codepoints is: %d\n", count);
 }
+
 
 //Function 9
 void encode_utf8(uint32_t num, char dest[]) {
@@ -208,6 +309,9 @@ void print_codepoint_plus_one(char str[]) {
     	printf("Next character of Codepoint is at index 3: %s\n", output);
 }
 
+
+
+
 int main(int argc, char *argv[]) {
    // if (argc != 2) {
    //     fprintf(stderr, "Usage: utf8analyzer \"<UTF-8 encoded string>\"\n");
@@ -228,3 +332,16 @@ int main(int argc, char *argv[]) {
     //Analyzer function 9
     print_codepoint_plus_one(buffer);
 }
+
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: utf8analyzer \"<UTF-8 encoded string>\"\n");
+        return 1;
+    }
+
+    char* test_string = argv[1];
+
+    printf("Input: %s\n", test_string);
+
+
